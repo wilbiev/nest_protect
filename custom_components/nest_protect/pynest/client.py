@@ -192,12 +192,12 @@ class NestClient:
         ) as response:
             try:
                 nest_response = await response.json()
-            except ContentTypeError:
+            except ContentTypeError as exception:
                 nest_response = await response.text()
 
                 raise PynestException(
                     f"{response.status} error while authenticating - {nest_response}. Please create an issue on GitHub."
-                )
+                ) from exception
 
             # Change variable names since Python cannot handle vars that start with a number
             if nest_response.get("2fa_state"):
@@ -211,12 +211,12 @@ class NestClient:
 
             try:
                 self.nest_session = NestResponse(**nest_response)
-            except Exception:
+            except Exception as exception:
                 nest_response = await response.text()
 
                 raise PynestException(
                     f"{response.status} error while authenticating - {nest_response}. Please create an issue on GitHub."
-                )
+                ) from exception
 
             return self.nest_session
 
@@ -279,12 +279,12 @@ class NestClient:
 
             try:
                 result = await response.json()
-            except ContentTypeError:
+            except ContentTypeError as error:
                 result = await response.text()
 
                 raise PynestException(
                     f"{response.status} error while subscribing - {result}"
-                )
+                ) from error
 
             # TODO type object
 
@@ -320,12 +320,12 @@ class NestClient:
 
             try:
                 result = await response.json()
-            except ContentTypeError:
+            except ContentTypeError as error:
                 result = await response.text()
 
                 raise PynestException(
                     f"{response.status} error while subscribing - {result}"
-                )
+                ) from error
 
             # TODO type object
 

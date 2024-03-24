@@ -42,7 +42,7 @@ The values of "issue_token" and "cookies" are specific to your Google Account. T
 2. Open Developer Tools (View/Developer/Developer Tools).
 3. Click on **Network** tab. Make sure 'Preserve Log' is checked.
 4. In the **Filter** box, enter `issueToken`
-5. Go to home.nest.com, and click **Sign in with Google**. Log into your account.
+5. Go to https://home.nest.com, and click **Sign in with Google**. Log into your account.
 6. One network call (beginning with iframerpc) will appear in the Dev Tools window. Click on it.
 7. In the Headers tab, under General, copy the entire Request URL (beginning with https://accounts.google.com). This is your _'issue_token'_ in the configuration form.
 8. In the **Filter** box, enter _oauth2/iframe_.
@@ -68,4 +68,5 @@ logger:
 ## Credits
 
 Based on the research and implementation of [homebridge-nest](https://github.com/chrisjshull/homebridge-nest).
-Improvements on the code of [Mick Vleeshouwer](https://github.com/iMicknl/)
+
+Improvements on the code of [Mick Vleeshouwer](https://github.com/iMicknl/).
