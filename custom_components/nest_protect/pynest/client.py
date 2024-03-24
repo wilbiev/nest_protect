@@ -75,7 +75,6 @@ class NestClient:
 
     async def get_access_token(self) -> GoogleAuthResponse:
         """Get a Nest access token."""
-
         if self.refresh_token:
             await self.get_access_token_from_refresh_token(self.refresh_token)
         elif self.issue_token and self.cookies:
@@ -188,17 +187,17 @@ class NestClient:
             headers={
                 "Authorization": f"Basic {nest_auth.jwt}",
                 "cookie": "G_ENABLED_IDPS=google; eu_cookie_accepted=1; viewer-volume=0.5; cztoken="
-                + (nest_auth.jwt if nest_auth.jwt else ""),
+                + nest_auth.jwt,
             },
         ) as response:
             try:
                 nest_response = await response.json()
-            except ContentTypeError as exception:
+            except ContentTypeError:
                 nest_response = await response.text()
 
                 raise PynestException(
                     f"{response.status} error while authenticating - {nest_response}. Please create an issue on GitHub."
-                ) from exception
+                )
 
             # Change variable names since Python cannot handle vars that start with a number
             if nest_response.get("2fa_state"):
@@ -210,20 +209,14 @@ class NestClient:
                     "2fa_state_changed"
                 )
 
-            if nest_response.get("error"):
-                _LOGGER.error("Authentication error: %s", nest_response.get("error"))
-
             try:
                 self.nest_session = NestResponse(**nest_response)
-            except Exception as exception:
+            except Exception:
                 nest_response = await response.text()
-
-                if result.get("error"):
-                    _LOGGER.error("Could not interpret Nest response")
 
                 raise PynestException(
                     f"{response.status} error while authenticating - {nest_response}. Please create an issue on GitHub."
-                ) from exception
+                )
 
             return self.nest_session
 
@@ -256,26 +249,18 @@ class NestClient:
     ) -> Any:
         """Subscribe for data."""
 
+        epoch = int(time.time())
+        random = str(randint(100, 999))
         timeout = 3600 * 24
-
-        objects = []
-        for bucket in updated_buckets:
-            objects.append(
-                {
-                    "object_key": bucket["object_key"],
-                    "object_revision": bucket["object_revision"],
-                    "object_timestamp": bucket["object_timestamp"],
-                }
-            )
 
         # TODO throw better exceptions
         async with self.session.post(
             f"{transport_url}/v6/subscribe",
             timeout=ClientTimeout(total=timeout),
             json={
-                "objects": objects,
-                # "timeout": timeout,
-                # "sessionID": f"ios-${user_id}.{random}.{epoch}",
+                "objects": updated_buckets,
+                "timeout": timeout,
+                "sessionID": f"ios-${user_id}.{random}.{epoch}",
             },
             headers={
                 "Authorization": f"Basic {nest_access_token}",
@@ -283,8 +268,6 @@ class NestClient:
                 "X-nl-protocol-version": str(1),
             },
         ) as response:
-            _LOGGER.debug("Got data from Nest service %s", response.status)
-
             if response.status == 401:
                 raise NotAuthenticatedException(await response.text())
 
@@ -296,14 +279,15 @@ class NestClient:
 
             try:
                 result = await response.json()
-            except ContentTypeError as error:
+            except ContentTypeError:
                 result = await response.text()
 
                 raise PynestException(
                     f"{response.status} error while subscribing - {result}"
-                ) from error
+                )
 
             # TODO type object
+
             return result
 
     async def update_objects(

@@ -149,6 +149,8 @@ async def _async_subscribe_for_data(hass: HomeAssistant, entry: ConfigEntry, dat
     """Subscribe for new data."""
     entry_data: HomeAssistantNestProtectData = hass.data[DOMAIN][entry.entry_id]
 
+    LOGGER.debug("Subscriber: listening for new data")
+
     try:
         # TODO move refresh token logic to client
         if (
