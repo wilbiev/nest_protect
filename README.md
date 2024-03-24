@@ -68,3 +68,4 @@ logger:
 ## Credits
 
 Based on the research and implementation of [homebridge-nest](https://github.com/chrisjshull/homebridge-nest).
+Improvements on the code of [Mick Vleeshouwer](https://github.com/iMicknl/)
